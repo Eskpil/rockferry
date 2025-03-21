@@ -44,7 +44,9 @@ export const NodesTab: React.FC<unknown> = () => {
                                 onClick={() => {
                                     localStorage.removeItem(`${node.id}/tab`);
 
-                                    navigate(`/nodes/${node.id}`);
+                                    navigate(
+                                        `/${ResourceKind.Node}/${node.id}`,
+                                    );
                                 }}
                             >
                                 <Table.RowHeaderCell>
@@ -53,7 +55,7 @@ export const NodesTab: React.FC<unknown> = () => {
                                     </Badge>
                                 </Table.RowHeaderCell>
                                 <Table.RowHeaderCell>
-                                    {node.spec!.hostname}
+                                    {node.spec!.name}
                                 </Table.RowHeaderCell>
                                 <Table.Cell>
                                     <Badge color="green">
