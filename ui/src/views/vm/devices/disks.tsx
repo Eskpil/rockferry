@@ -46,15 +46,11 @@ const DiskView: React.FC<DiskViewProps> = ({ disk, vm }) => {
         return <div>loading..</div>;
     }
 
-    const capacity = convert(
-        volume!.spec!.capacity,
-        Units.Bytes,
-        Units.Gigabyte,
+    const capacity = Math.round(
+        convert(volume!.spec!.capacity, Units.Bytes, Units.Gigabyte),
     );
-    const allocation = convert(
-        volume!.spec!.allocation,
-        Units.Bytes,
-        Units.Gigabyte,
+    const allocation = Math.round(
+        convert(volume!.spec!.allocation, Units.Bytes, Units.Gigabyte),
     );
     return (
         <WithOwner<Pool> res={volume!}>
@@ -73,21 +69,24 @@ const DiskView: React.FC<DiskViewProps> = ({ disk, vm }) => {
                         </Text>
                     </Table.RowHeaderCell>
                     <Table.RowHeaderCell>
-                        <Badge
-                            color={
-                                checkVolumeAllocationStatus(
-                                    capacity,
-                                    allocation,
-                                ) as any
-                            }
-                        >
-                            {allocation} gb
-                        </Badge>{" "}
-                        /{" "}
-                        <Badge>
-                            {capacity}
-                            gb
-                        </Badge>
+                        {volume?.spec?.type == "iso" ? (
+                            <Badge color="amber">n/a</Badge>
+                        ) : (
+                            <>
+                                <Badge
+                                    color={
+                                        checkVolumeAllocationStatus(
+                                            capacity,
+                                            allocation,
+                                        ) as any
+                                    }
+                                >
+                                    {allocation} gb
+                                </Badge>
+                                {" / "}
+                                <Badge>{capacity} gb</Badge>
+                            </>
+                        )}
                     </Table.RowHeaderCell>
                     <Table.RowHeaderCell>{disk.target.dev}</Table.RowHeaderCell>
                     <Table.RowHeaderCell>
@@ -104,7 +103,7 @@ const DiskView: React.FC<DiskViewProps> = ({ disk, vm }) => {
                         </Text>
                     </Table.RowHeaderCell>
                     <Table.Cell>{disk.device}</Table.Cell>
-                    <Table.Cell>{disk.type}</Table.Cell>
+                    <Table.Cell>{volume?.spec?.type}</Table.Cell>
                     <Table.Cell>
                         <Button
                             variant="soft"

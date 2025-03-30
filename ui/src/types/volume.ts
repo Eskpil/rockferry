@@ -4,4 +4,5 @@ export interface Volume {
     pool: string;
     allocation: number;
     capacity: number;
+    type: string;
 }

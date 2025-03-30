@@ -3,6 +3,7 @@ package queries
 import (
 	"encoding/xml"
 	"fmt"
+	"path/filepath"
 
 	"github.com/digitalocean/go-libvirt"
 	"github.com/eskpil/rockferry/pkg/rockferry"
@@ -70,14 +71,21 @@ func (c *Client) QueryVolumeSpec(poolName string, name string) (*spec.StorageVol
 		return nil, err
 	}
 
-	spec := new(spec.StorageVolumeSpec)
+	volumeSpec := new(spec.StorageVolumeSpec)
 
-	spec.Key = xmlSchema.Key
-	spec.Name = xmlSchema.Name
-	spec.Allocation = uint64(xmlSchema.Allocation.Value)
-	spec.Capacity = uint64(xmlSchema.Capacity.Value)
+	// TODO: This is naive. And potentially unsafe
+	if filepath.Ext(xmlSchema.Key) == ".iso" {
+		volumeSpec.Type = spec.StorageVolumeTypeIso
+	} else {
+		volumeSpec.Type = spec.StorageVolumeTypeDiskImage
+	}
 
-	return spec, nil
+	volumeSpec.Key = xmlSchema.Key
+	volumeSpec.Name = xmlSchema.Name
+	volumeSpec.Allocation = uint64(xmlSchema.Allocation.Value)
+	volumeSpec.Capacity = uint64(xmlSchema.Capacity.Value)
+
+	return volumeSpec, nil
 }
 
 func (c *Client) QueryStorageVolumes() ([]*rockferry.StorageVolume, error) {
@@ -106,6 +114,7 @@ func (c *Client) QueryStorageVolumes() ([]*rockferry.StorageVolume, error) {
 
 			volume.Owner.Kind = rockferry.ResourceKindStoragePool
 			volume.Owner.Id = poolId.String()
+
 			volume.Kind = rockferry.ResourceKindStorageVolume
 			volume.Phase = rockferry.PhaseCreated
 
