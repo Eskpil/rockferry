@@ -12,6 +12,7 @@ import (
 	"github.com/eskpil/rockferry/pkg/rockferry"
 	"github.com/eskpil/rockferry/pkg/rockferry/spec"
 	"github.com/google/uuid"
+	"github.com/siderolabs/go-pointer"
 )
 
 func ensurePath(p string) error {
@@ -135,41 +136,41 @@ func (t *CreateVirtualMachineTask) createNetworkInterfaces(ctx context.Context, 
 	return interfaces, nil
 }
 
-//func (t *CreateVirtualMachineTask) downloadPossibleResources(machineSpec *spec.MachineSpec) error {
-//	basePath := fmt.Sprintf("/var/rockferry/assets")
-//
-//	if err := ensurePath(basePath); err != nil {
-//		return err
-//	}
-//
-//	for k, v := range t.Request.Annotations {
-//		if k == "kernel.download" {
-//			// /var/rockferry/assets/${UUID}
-//			path := fmt.Sprintf("%s/%s", basePath, uuid.NewString())
-//			if err := downloadFile(path, v); err != nil {
-//				return err
-//			}
-//
-//			machineSpec.Boot.Kernel = pointer.To(path)
-//		}
-//
-//		if k == "initramfs.download" {
-//			// /var/rockferry/assets/${UUID}
-//			path := fmt.Sprintf("%s/%s", basePath, uuid.NewString())
-//			if err := downloadFile(path, v); err != nil {
-//				return err
-//			}
-//
-//			machineSpec.Boot.Initramfs = pointer.To(path)
-//		}
-//
-//		if k == "kernel.cmdline" {
-//			machineSpec.Boot.Cmdline = pointer.To(v)
-//		}
-//	}
-//
-//	return nil
-//}
+func (t *CreateVirtualMachineTask) downloadPossibleResources(machineSpec *spec.MachineSpec) error {
+	basePath := fmt.Sprintf("/var/rockferry/assets")
+
+	if err := ensurePath(basePath); err != nil {
+		return err
+	}
+
+	for k, v := range t.Request.Annotations {
+		if k == "kernel.download" {
+			// /var/rockferry/assets/${UUID}
+			path := fmt.Sprintf("%s/%s", basePath, uuid.NewString())
+			if err := downloadFile(path, v); err != nil {
+				return err
+			}
+
+			machineSpec.Boot.Kernel = pointer.To(path)
+		}
+
+		if k == "initramfs.download" {
+			// /var/rockferry/assets/${UUID}
+			path := fmt.Sprintf("%s/%s", basePath, uuid.NewString())
+			if err := downloadFile(path, v); err != nil {
+				return err
+			}
+
+			machineSpec.Boot.Initramfs = pointer.To(path)
+		}
+
+		if k == "kernel.cmdline" {
+			machineSpec.Boot.Cmdline = pointer.To(v)
+		}
+	}
+
+	return nil
+}
 
 func (t *CreateVirtualMachineTask) Execute(ctx context.Context, executor *Executor) error {
 	// NOTE: Used to annotate storage volumes with the vm id. This is useful for deletion.
@@ -187,9 +188,9 @@ func (t *CreateVirtualMachineTask) Execute(ctx context.Context, executor *Execut
 
 	machineSpec := new(spec.MachineSpec)
 
-	//if err := t.downloadPossibleResources(machineSpec); err != nil {
-	//	return err
-	//}
+	if err := t.downloadPossibleResources(machineSpec); err != nil {
+		return err
+	}
 
 	machineSpec.Boot.Order = []string{"hd", "cdrom"}
 
